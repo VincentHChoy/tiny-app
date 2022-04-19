@@ -1,8 +1,11 @@
 const { Template } = require("ejs");
+var cookieParser = require('cookie-parser')
 const bodyParser = require("body-parser");
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+
+app.use(cookieParser())
 
 function generateRandomString() {
   let result = ''
@@ -32,8 +35,22 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase }
+  const templateVars = {username: req.cookies['username'], urls: urlDatabase }
+  // const templateVars = {urls: urlDatabase }
+
   res.render("urls_index", templateVars)
+});
+
+//cookie stores username
+
+app.post("/logout", (req, res) => {
+  res.clearCookie('username');
+  res.redirect("/urls");
+});
+
+app.post("/login", (req, res) => {
+  res.cookie('username',req.body.username)
+  res.redirect("/urls");
 });
 
 app.get("/urls/new", (req, res) => {
@@ -48,21 +65,12 @@ app.post("/urls/:id", (req, res) => {
 });
 
 
-
-app.post("/urls", (req, res) => {
-  // console.log(req.body); // Log the POST request body to the console
-  let shortURL = generateRandomString()
-  urlDatabase[shortURL] = req.body.longURL
-  // console.log(urlDatabase)
-  res.redirect("/urls/" + shortURL);
-});
-
-
 //links to the show page
 app.get("/urls/:shortURL", (req, res) => {
   // console.log('its doggo time')
   const shortURL = req.params.shortURL
-  const templateVars = { shortURL: shortURL, longURL: urlDatabase[shortURL] };
+  const templateVars = {username: req.cookies["username"], shortURL: shortURL, longURL: urlDatabase[shortURL] };  
+  // const templateVars = {shortURL: shortURL, longURL: urlDatabase[shortURL] };
   res.render("urls_show", templateVars);
 });
 
@@ -78,10 +86,8 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //generate string and add new post to /urls
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
   let shortURL = generateRandomString()
   urlDatabase[shortURL] = req.body.longURL
-  console.log(urlDatabase)
   res.redirect("/urls/" + shortURL);
 });
 
