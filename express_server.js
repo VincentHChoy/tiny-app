@@ -63,7 +63,7 @@ app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   users[randomID] = {};
-  
+
   if (email.length === 0 || password.length === 0) return res.sendStatus(400);
   if (checkEmailExists(email)) return res.sendStatus(400);
 
@@ -95,6 +95,10 @@ app.post("/logout", (req, res) => {
   res.clearCookie("username");
   res.clearCookie("user_id");
   res.redirect("/urls");
+});
+
+app.get("/login", (req, res) => {
+  res.render("urls_login");
 });
 
 app.post("/login", (req, res) => {
