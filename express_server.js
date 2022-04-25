@@ -78,6 +78,10 @@ app.get("/register", (req, res) => {
   res.render("urls_register");
 });
 
+app.get("/", (req, res) => {
+  res.redirect("/urls");
+});
+
 app.post("/register", (req, res) => {
   const randomID = generateRandomString();
   const email = req.body.email;
@@ -135,7 +139,8 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  if(req.cookies["user_id"] === undefined) res.render("urls_login");
+  res.render("urls_new")
 });
 
 //updates urls
@@ -156,6 +161,7 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: urlDatabase[shortURL],
   };
   checkSignedIn(user_id, templateVars);
+  console.log(templateVars)
   res.render("urls_show", templateVars);
 });
 
@@ -168,7 +174,11 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 //generate string and add new post to /urls
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
+  if(req.cookies["user_id"] !== undefined) {
+    urlDatabase[shortURL] = req.body.longURL;
+  } else{
+    return res.send('you have to be logged in to make a post')
+  }
   res.redirect("/urls/" + shortURL);
 });
 
