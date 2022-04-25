@@ -22,7 +22,7 @@
       </form>
       <% }else{ %>
       <form class="form-inline my-2 my-lg-0" action="/logout" method="POST">
-        <a style="margin: 1em"><b>Logged in as: <%= user_id.email %><b></b></a> <button class="btn btn-outline-danger my-2 my-sm-0" type="submit">Logout</button>
+        <a style="margin: 1em"><b>Logged in as: <%= users[user_id].email %><b></b></a> <button class="btn btn-outline-danger my-2 my-sm-0" type="submit">Logout</button>
       </form>
       <% } %>
     </div>

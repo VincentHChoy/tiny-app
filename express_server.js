@@ -20,7 +20,7 @@ function generateRandomString() {
 
 function checkSignedIn(user_id, templateVars) {
   if (typeof users[user_id] !== "undefined")
-    templateVars.user_id = users[user_id];
+    templateVars.user_id = users[user_id].id;
   return templateVars;
 }
 
@@ -34,15 +34,15 @@ function checkSignedIn(user_id, templateVars) {
 function checkLogin(email, password = "") {
   const output = {
     emailExists: false,
-    passwordMatches: false
-  }
+    passwordMatches: false,
+  };
   for (const ids in users) {
     if (users[ids].email === email) {
       output.emailExists = true; // email matches
       if (password.length > 0) {
         if (users[ids].password === password) {
           output.passwordMatches = true;
-          output.id = ids
+          output.id = ids;
           return output;
         } else {
           return output;
@@ -54,14 +54,25 @@ function checkLogin(email, password = "") {
   return output;
 }
 
+// const urlDatabase = {
+//   b2xVn2: "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com",
+// };
+
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
-  userRandomID: {
-    id: "userRandomID",
+  aJ48lW: {
+    id: "aJ48lW",
     email: "user@example.com",
     password: "dog",
   },
@@ -74,12 +85,33 @@ const users = {
 
 app.set("view engine", "ejs");
 
-app.get("/register", (req, res) => {
-  res.render("urls_register");
+//updates urls; edit button on /urls
+app.post("/urls/:id", (req, res) => {
+  const shortURL = req.params.id;
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL].longURL = longURL;
+  res.redirect("/urls/" + shortURL);
 });
 
-app.get("/", (req, res) => {
-  res.redirect("/urls");
+//generate string and add new post to /urls
+app.post("/urls", (req, res) => {
+  let randomString = generateRandomString();
+  if (req.cookies["user_id"] !== undefined) {
+    urlDatabase[randomString] = {};
+    urlDatabase[randomString].longURL = req.body.longURL;
+    urlDatabase[randomString].userID = req.cookies.user_id;
+  } else {
+    return res.send("you have to be logged in to make a post");
+  }
+  console.log("urldatabase", urlDatabase);
+  res.redirect("/urls/" + randomString);
+});
+
+//the short URL redirects you to the page specified in long url
+app.get("/u/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  if(urlDatabase[shortURL] === undefined) return res.sendStatus("404");
+  else res.redirect(urlDatabase[shortURL].longURL)
 });
 
 app.post("/register", (req, res) => {
@@ -87,7 +119,7 @@ app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   users[randomID] = {};
-  const check = checkLogin(email)
+  const check = checkLogin(email);
 
   if (email.length === 0 || password.length === 0) return res.sendStatus(400);
   if (check.emailExists) return res.sendStatus(400);
@@ -100,30 +132,16 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+//used to delete URLs from the /url list
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls/");
 });
-
-app.get("/urls", (req, res) => {
-  const user_id = req.cookies["user_id"];
-  const templateVars = {
-    urls: urlDatabase,
-    users
-  };
-  checkSignedIn(user_id, templateVars);
-  res.render("urls_index", templateVars);
-});
-
-//cookie stores username
 
 app.post("/logout", (req, res) => {
   res.clearCookie("username");
   res.clearCookie("user_id");
   res.redirect("/urls");
-});
-
-app.get("/login", (req, res) => {
-  res.render("urls_login");
 });
 
 app.post("/login", (req, res) => {
@@ -138,17 +156,28 @@ app.post("/login", (req, res) => {
   }
 });
 
-app.get("/urls/new", (req, res) => {
-  if(req.cookies["user_id"] === undefined) res.render("urls_login");
-  res.render("urls_new")
+app.get("/register", (req, res) => {
+  res.render("urls_register");
 });
 
-//updates urls
-app.post("/urls/:id", (req, res) => {
-  const shortURL = req.params.id;
-  const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
-  res.redirect("/urls/" + shortURL);
+app.get("/urls", (req, res) => {
+  const user_id = req.cookies["user_id"];
+  const templateVars = {
+    urls: urlDatabase,
+    users,
+    user_id: user_id,
+  };
+  checkSignedIn(user_id, templateVars);
+  res.render("urls_index", templateVars);
+});
+
+app.get("/login", (req, res) => {
+  res.render("urls_login");
+});
+
+app.get("/urls/new", (req, res) => {
+  if (req.cookies["user_id"] === undefined) res.render("urls_login");
+  res.render("urls_new");
 });
 
 //links to the show page
@@ -158,38 +187,14 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     users,
     shortURL: shortURL,
-    longURL: urlDatabase[shortURL],
+    longURL: urlDatabase[shortURL].longURL,
   };
   checkSignedIn(user_id, templateVars);
-  console.log(templateVars)
   res.render("urls_show", templateVars);
 });
 
-//used to delete URLs from the /url list
-app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls/");
-});
-
-//generate string and add new post to /urls
-app.post("/urls", (req, res) => {
-  let shortURL = generateRandomString();
-  if(req.cookies["user_id"] !== undefined) {
-    urlDatabase[shortURL] = req.body.longURL;
-  } else{
-    return res.send('you have to be logged in to make a post')
-  }
-  res.redirect("/urls/" + shortURL);
-});
-
-//the short URL redirects you to the page specified in long url
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+app.get("/", (req, res) => {
+  res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
