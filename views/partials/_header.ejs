@@ -12,20 +12,17 @@
         <li class="nav-item">
           <a class="nav-link" href="/urls/new">Create New URL</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/dog">Status error 404</a>
-        </li>
       </ul>
-      <% if(typeof username==='undefined' ){ %>
-      <form class="form-inline my-2 my-lg-0" style="margin: 1em" action="/login" method="GET">
-        <button class="btn btn-primary my-2 my-sm-0" type="submit">Log in</button>
+      <% if(typeof user_id ==='undefined'){ %>
+      <form class="form-inline my-2 my-lg-0" style="margin: 1em;" action="/login" method="GET">
+        <button class="btn btn-primary my-2 my-sm-0" " type="submit">Log in</button>
       </form>
       <form class="form-inline my-2 my-lg-0" action="/register" method="GET">
-        <button class="btn btn-primary my-2 my-sm-0" type="submit">Register</button>
+        <button class="btn my-2 my-sm-0" style="background-color: #ffc107" type="submit">Register</button>
       </form>
       <% }else{ %>
       <form class="form-inline my-2 my-lg-0" action="/logout" method="POST">
-        <a style="margin: 1em"><b>Logged in as: <%= username %><b></b></a> <button class="btn btn-outline-danger my-2 my-sm-0" type="submit">logout</button>
+        <a style="margin: 1em"><b>Logged in as: <%= user_id.email %><b></b></a> <button class="btn btn-outline-danger my-2 my-sm-0" type="submit">Logout</button>
       </form>
       <% } %>
     </div>

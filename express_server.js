@@ -20,16 +20,38 @@ function generateRandomString() {
 
 function checkSignedIn(user_id, templateVars) {
   if (typeof users[user_id] !== "undefined")
-    templateVars.username = users[user_id].email;
+    templateVars.user_id = users[user_id];
   return templateVars;
 }
 
-function checkEmailExists(email) {
-  for (const ids in users) {
-    console.log(users[ids].email);
-    if (users[ids].email === email) return true;
+// function checkEmailExists(email) {
+//   for (const ids in users) {
+//     if (users[ids].email === email) return true;
+//   }
+//   return false;
+// }
+
+function checkLogin(email, password = "") {
+  const output = {
+    emailExists: false,
+    passwordMatches: false
   }
-  return false;
+  for (const ids in users) {
+    if (users[ids].email === email) {
+      output.emailExists = true; // email matches
+      if (password.length > 0) {
+        if (users[ids].password === password) {
+          output.passwordMatches = true;
+          output.id = ids
+          return output;
+        } else {
+          return output;
+        }
+      }
+      return output;
+    }
+  }
+  return output;
 }
 
 const urlDatabase = {
@@ -41,7 +63,7 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: "dog",
   },
   user2RandomID: {
     id: "user2RandomID",
@@ -53,26 +75,24 @@ const users = {
 app.set("view engine", "ejs");
 
 app.get("/register", (req, res) => {
-  const templateVars = { isRegister: true };
-  res.render("urls_register", templateVars);
+  res.render("urls_register");
 });
 
 app.post("/register", (req, res) => {
-  
   const randomID = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
   users[randomID] = {};
+  const check = checkLogin(email)
 
   if (email.length === 0 || password.length === 0) return res.sendStatus(400);
-  if (checkEmailExists(email)) return res.sendStatus(400);
+  if (check.emailExists) return res.sendStatus(400);
 
   users[randomID].id = randomID;
   users[randomID].email = email;
   users[randomID].password = password;
 
   res.cookie("user_id", randomID);
-  res.cookie("username", email);
   res.redirect("/urls");
 });
 
@@ -84,6 +104,7 @@ app.get("/urls", (req, res) => {
   const user_id = req.cookies["user_id"];
   const templateVars = {
     urls: urlDatabase,
+    users
   };
   checkSignedIn(user_id, templateVars);
   res.render("urls_index", templateVars);
@@ -102,8 +123,15 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+  const email = req.body.email;
+  const password = req.body.password;
+  const check = checkLogin(email, password);
+  if (check.passwordMatches) {
+    res.cookie("user_id", check.id);
+    res.redirect("/urls");
+  } else {
+    return res.sendStatus(403);
+  }
 });
 
 app.get("/urls/new", (req, res) => {
@@ -123,6 +151,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const user_id = req.cookies["user_id"];
   const templateVars = {
+    users,
     shortURL: shortURL,
     longURL: urlDatabase[shortURL],
   };
