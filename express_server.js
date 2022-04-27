@@ -29,7 +29,7 @@ const urlDatabase = {
   },
 };
 
-//user data 
+//user data
 const users = {
   aJ48lW: {
     id: "aJ48lW",
@@ -77,7 +77,7 @@ app.get("/u/:shortURL", (req, res) => {
   else res.redirect(urlDatabase[shortURL].longURL);
 });
 
-//used for registering new users
+//used for registering new users, posts to the database
 app.post("/register", (req, res) => {
   const randomID = generateRandomString();
   const email = req.body.email;
