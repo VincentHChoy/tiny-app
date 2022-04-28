@@ -13,7 +13,7 @@
           <a class="nav-link" href="/urls/new">Create New URL</a>
         </li>
       </ul>
-      <% if(typeof user_id ==='undefined'){ %>
+      <% if(typeof user_id ==='undefined' || typeof users[user_id] === 'undefined' ){ %>
       <form class="form-inline my-2 my-lg-0" style="margin: 1em;" action="/login" method="GET">
         <button class="btn btn-primary my-2 my-sm-0" " type="submit">Log in</button>
       </form>
@@ -22,7 +22,7 @@
       </form>
       <% }else{ %>
       <form class="form-inline my-2 my-lg-0" action="/logout" method="POST">
-        <a style="margin: 1em"><b>Logged in as: <%= users[user_id].email %><b></b></a> <button class="btn btn-outline-danger my-2 my-sm-0" type="submit">Logout</button>
+        <a style="margin: 1em; color: #fff;"><b>Logged in as: <%= users[user_id].email %><b></b></a> <button class="btn btn-outline-danger my-2 my-sm-0" type="submit">Logout</button>
       </form>
       <% } %>
     </div>

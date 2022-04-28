@@ -30,8 +30,8 @@ const testUsers = {
 };
 
 
-describe("getUserByEmail", function () {
-  it("should return a user with valid email if it exists", function () {
+describe("getUserByEmail", function() {
+  it("should return a user with valid email if it exists", function() {
     const user = checkLogin("user@example.com", "", testUsers);
     const expectedUserID = "aJ48lW";
     assert.equal(expectedUserID, user.id);
@@ -43,8 +43,8 @@ describe("getUserByEmail", function () {
   });
 });
 
-describe("Filterdatabase", function () {
-  it("return a key-value datastructure with the shortURL:longURL belonging to the user", function () {
+describe("Filterdatabase", function() {
+  it("return a key-value datastructure with the shortURL:longURL belonging to the user", function() {
     const filteredDatabase = filterDatabase("aJ48lW", testUrlDatabase);
     const expected = {
       sqq3y6: "https://www.tsn.ca",
